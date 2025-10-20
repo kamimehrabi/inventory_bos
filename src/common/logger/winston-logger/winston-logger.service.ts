@@ -16,7 +16,6 @@ export class WinstonLogger implements LoggerService {
           // Custom log format: [Timestamp] [Context] Level: Message
           winston.format.printf(
             ({ level, message, timestamp, context }) =>
-              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
               `${timestamp} [\x1b[33m${context || this.context}\x1b[39m] ${level}: ${message}`,
           ),
         ),
@@ -41,23 +40,23 @@ export class WinstonLogger implements LoggerService {
     this.context = context;
   }
 
-  log(message: any, context?: string) {
+  log(message: string, context?: string) {
     this.logger.info(message, { context: context || this.context });
   }
 
-  error(message: any, trace?: string, context?: string) {
+  error(message: string, trace?: string, context?: string) {
     this.logger.error(message, { context: context || this.context, trace });
   }
 
-  warn(message: any, context?: string) {
+  warn(message: string, context?: string) {
     this.logger.warn(message, { context: context || this.context });
   }
 
-  debug(message: any, context?: string) {
+  debug(message: string, context?: string) {
     this.logger.debug(message, { context: context || this.context });
   }
 
-  verbose(message: any, context?: string) {
+  verbose(message: string, context?: string) {
     this.logger.verbose(message, { context: context || this.context });
   }
 }
