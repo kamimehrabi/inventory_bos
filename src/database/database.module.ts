@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigService } from '@nestjs/config';
+import { User } from 'src/user/user.model';
+import { Dealership } from 'src/dealership/dealership.model';
+import { Vehicle } from 'src/vehicle/vehicle.model';
+import { BillOfSale } from 'src/bill-of-sale/bill-of-sale.model';
 
 @Module({
   imports: [
@@ -14,7 +18,7 @@ import { ConfigService } from '@nestjs/config';
         logging: (msg) => console.log(`[DB] ${msg}`),
       }),
     }),
-    SequelizeModule.forFeature([]),
+    SequelizeModule.forFeature([User, Dealership, Vehicle, BillOfSale]),
   ],
   exports: [SequelizeModule],
 })
