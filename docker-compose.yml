@@ -4,11 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # Use bind mount for hot-reloading during development
     volumes:
       - .:/usr/src
-      # Exclude node_modules from host-to-container mapping
-      - /usr/src/app/node_modules
+      - /usr/src/node_modules
     ports:
       - "3000:3000"
     environment:
