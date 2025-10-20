@@ -1,0 +1,51 @@
+services:
+  app:
+    container_name: inventory_bos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Use bind mount for hot-reloading during development
+    volumes:
+      - .:/usr/src
+      # Exclude node_modules from host-to-container mapping
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      - db
+      - redis
+    command: yarn run start:dev  
+
+  # 2. PostgreSQL Database Service
+  db:
+    container_name: inventory_bos_db
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 3. Redis Cache Service
+  redis:
+    container_name: inventory_bos_redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+# Docker Volumes for data persistence
+volumes:
+  postgres_data:
+  redis_data:

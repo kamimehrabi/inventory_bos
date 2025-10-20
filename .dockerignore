@@ -1,0 +1,12 @@
+# Dependency files
+/node_modules
+/npm-debug.log
+
+# Build outputs
+/dist
+/tmp
+
+# Editor/OS files
+.idea
+.vscode
+.DS_Store
