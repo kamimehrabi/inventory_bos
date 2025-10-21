@@ -6,6 +6,7 @@ import { DealershipModule } from './dealership/dealership.module';
 import { VehicleModule } from './vehicle/vehicle.module';
 import { BillOfSaleModule } from './bill-of-sale/bill-of-sale.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserModule } from './user/user.module';
     VehicleModule,
     BillOfSaleModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

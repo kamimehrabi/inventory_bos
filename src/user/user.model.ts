@@ -14,6 +14,7 @@ export enum UserRole {
 }
 
 export interface UserFields {
+  id: number;
   email: string;
   passwordHash: string;
   role: UserRole;
@@ -38,28 +39,28 @@ export class User extends Model<User> implements UserFields {
     allowNull: false,
     unique: true,
   })
-  email: string;
+  declare email: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  passwordHash: string; // Storing the hashed password
+  declare passwordHash: string;
 
   @Column({
     type: DataType.ENUM(...Object.values(UserRole)),
     allowNull: false,
     defaultValue: UserRole.DEALER,
   })
-  role: UserRole;
+  declare role: UserRole;
 
   @ForeignKey(() => Dealership)
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  dealershipId: string;
+  declare dealershipId: string;
 
   @BelongsTo(() => Dealership)
-  dealership: Dealership;
+  declare dealership: Dealership;
 }
