@@ -1,4 +1,15 @@
 import { Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
 
-@Module({})
+import { Vehicle } from './vehicle.model';
+import { VehicleController } from './vehicle.controller';
+import { VehicleService } from './vehicle.service';
+import { LoggerModule } from 'src/common/logger/logger.module';
+import { AuthModule } from 'src/auth/auth.module';
+
+@Module({
+  imports: [SequelizeModule.forFeature([Vehicle]), LoggerModule, AuthModule],
+  controllers: [VehicleController],
+  providers: [VehicleService],
+})
 export class VehicleModule {}

@@ -13,7 +13,8 @@ import { BillOfSale } from 'src/bill-of-sale/bill-of-sale.model';
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('DATABASE_URL'),
         dialect: 'postgres',
-        synchronize: true, //alter...
+        synchronize: true,
+        // alter: true,
         autoLoadModels: true,
         logging: (msg) => console.log(`[DB] ${msg}`),
       }),

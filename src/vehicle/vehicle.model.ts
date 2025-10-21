@@ -17,19 +17,22 @@ export enum VehicleStatus {
 }
 
 export interface VehicleFields {
-  dealershipId: string;
+  id: number;
   year: number;
   make: string;
   model: string;
   price: number;
   status: VehicleStatus;
+
+  dealershipId: string;
 }
 
 @Table({
   tableName: 'vehicles',
   timestamps: true,
+  paranoid: true,
 })
-export class Vehicle extends Model<Vehicle> {
+export class Vehicle extends Model<Vehicle> implements VehicleFields {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -42,7 +45,7 @@ export class Vehicle extends Model<Vehicle> {
     type: DataType.STRING,
     allowNull: false,
   })
-  dealershipId: string;
+  declare dealershipId: string;
 
   @BelongsTo(() => Dealership)
   dealership: Dealership;
@@ -52,39 +55,45 @@ export class Vehicle extends Model<Vehicle> {
     allowNull: false,
     unique: true,
   })
-  vin: string;
+  declare vin: string;
 
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
   })
-  year: number;
+  declare year: number;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  make: string;
+  declare make: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  model: string;
+  declare model: string;
 
   @Column({
     type: DataType.DECIMAL(10, 2),
     allowNull: false,
   })
-  price: number;
+  declare price: number;
 
   @Column({
     type: DataType.ENUM(...Object.values(VehicleStatus)),
     allowNull: false,
     defaultValue: VehicleStatus.AVAILABLE,
   })
-  status: VehicleStatus;
+  declare status: VehicleStatus;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  declare deletedAt: Date | null;
 
   @HasOne(() => BillOfSale)
-  billOfSale: BillOfSale;
+  declare billOfSale: BillOfSale;
 }
