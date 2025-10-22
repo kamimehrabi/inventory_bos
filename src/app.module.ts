@@ -7,6 +7,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
 import { BillOfSaleModule } from './bill-of-sale/bill-of-sale.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { MinioModule } from './common/storage/minio/minio.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     BillOfSaleModule,
     UserModule,
     AuthModule,
+    MinioModule,
   ],
   controllers: [],
   providers: [],

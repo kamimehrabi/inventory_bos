@@ -12,7 +12,9 @@ import {
   HttpCode,
   HttpStatus,
   Query,
-  UseGuards, // <-- New Import for Query
+  UseGuards,
+  UseInterceptors,
+  UploadedFile, // <-- New Import for Query
 } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -24,6 +26,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/user/user.model';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -66,14 +69,22 @@ export class VehicleController {
     return this.vehiclesService.update(id, updateVehicleDto, dealershipId);
   }
 
-  // Epic 4, 18: Soft Delete (deletedAt) and authorization
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(
     @Param('id', ParseIntPipe) id: number,
     @DealershipContext() dealershipId: string,
   ): Promise<void> {
-    // Authorization check and soft delete are handled inside the service
     return this.vehiclesService.remove(id, dealershipId);
+  }
+
+  @Post(':id/image')
+  @UseInterceptors(FileInterceptor('image'))
+  async uploadImage(
+    @Param('id', ParseIntPipe) id: number,
+    @DealershipContext() dealershipId: string,
+    @UploadedFile() file: Express.Multer.File, // File is now a buffer
+  ): Promise<Vehicle> {
+    return this.vehiclesService.uploadImage(id, dealershipId, file);
   }
 }

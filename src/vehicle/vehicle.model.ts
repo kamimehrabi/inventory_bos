@@ -23,6 +23,7 @@ export interface VehicleFields {
   model: string;
   price: number;
   status: VehicleStatus;
+  imageUrl: string | null;
 
   dealershipId: string;
 }
@@ -87,6 +88,12 @@ export class Vehicle extends Model<Vehicle> implements VehicleFields {
     defaultValue: VehicleStatus.AVAILABLE,
   })
   declare status: VehicleStatus;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare imageUrl: string | null;
 
   @Column({
     type: DataType.DATE,

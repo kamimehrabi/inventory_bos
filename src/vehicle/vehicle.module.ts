@@ -7,9 +7,15 @@ import { VehicleService } from './vehicle.service';
 import { LoggerModule } from 'src/common/logger/logger.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { SequelizeQueryBuilderService } from 'src/common/database/sequelize-query-builder.service';
+import { MinioModule } from 'src/common/storage/minio/minio.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Vehicle]), LoggerModule, AuthModule],
+  imports: [
+    SequelizeModule.forFeature([Vehicle]),
+    LoggerModule,
+    AuthModule,
+    MinioModule,
+  ],
   controllers: [VehicleController],
   providers: [VehicleService, SequelizeQueryBuilderService],
 })

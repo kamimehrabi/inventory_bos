@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -13,6 +14,7 @@ import {
   QueryConfig,
   SequelizeQueryBuilderService,
 } from 'src/common/database/sequelize-query-builder.service';
+import { MinioService } from 'src/common/storage/minio/minio.service';
 
 @Injectable()
 export class VehicleService {
@@ -33,6 +35,7 @@ export class VehicleService {
     private readonly vehicleModel: typeof Vehicle,
     private readonly logger: WinstonLogger,
     private readonly queryBuilder: SequelizeQueryBuilderService,
+    private readonly minioService: MinioService,
   ) {
     this.logger.setContext(VehicleService.name);
   }
@@ -103,13 +106,6 @@ export class VehicleService {
   ): Promise<Vehicle> {
     const vehicle = await this.findVehicleById(id, dealershipId);
 
-    if (!vehicle) {
-      this.logger.warn(
-        `Dealership ${dealershipId}: Vehicle with id ${id} not found.`,
-      );
-      throw new NotFoundException(`Vehicle with ID "${id}" not found`);
-    }
-
     this.logger.log(`Updating vehicle with id: ${id}`);
     const updatedVehicle = await vehicle.update({
       ...updateVehicleDto,
@@ -129,6 +125,33 @@ export class VehicleService {
     this.logger.log(
       `Dealership ${dealershipId}: Successfully soft-deleted vehicle with id: ${id}`,
     );
+  }
+
+  async uploadImage(
+    vehicleId: number,
+    dealershipId: string,
+    file: Express.Multer.File,
+  ): Promise<Vehicle> {
+    const vehicle = await this.findVehicleById(vehicleId, dealershipId);
+
+    if (!file) {
+      throw new BadRequestException('Image file is required.');
+    }
+
+    this.logger.log(
+      `Dealership ${dealershipId}: Uploading image for vehicle ${vehicleId}`,
+    );
+
+    const folder = `${dealershipId}/vehicles/${vehicleId}/`;
+    const imageUrl = await this.minioService.upload(file, folder);
+
+    const updatedVehicle = await vehicle.update({ imageUrl });
+
+    this.logger.log(
+      `Dealership ${dealershipId}: Image uploaded and vehicle ${vehicleId} updated.`,
+    );
+
+    return updatedVehicle;
   }
 
   private async findVehicleById(
