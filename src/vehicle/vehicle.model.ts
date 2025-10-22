@@ -10,19 +10,12 @@ import {
 import { Dealership } from '../dealership/dealership.model';
 import { BillOfSale } from '../bill-of-sale/bill-of-sale.model';
 
-export enum VehicleStatus {
-  AVAILABLE = 'AVAILABLE',
-  SOLD = 'SOLD',
-  PENDING = 'PENDING',
-}
-
 export interface VehicleFields {
   id: number;
   year: number;
   make: string;
   model: string;
   price: number;
-  status: VehicleStatus;
   imageUrl: string | null;
 
   dealershipId: string;
@@ -81,13 +74,6 @@ export class Vehicle extends Model<Vehicle> implements VehicleFields {
     allowNull: false,
   })
   declare price: number;
-
-  @Column({
-    type: DataType.ENUM(...Object.values(VehicleStatus)),
-    allowNull: false,
-    defaultValue: VehicleStatus.AVAILABLE,
-  })
-  declare status: VehicleStatus;
 
   @Column({
     type: DataType.STRING,

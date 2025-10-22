@@ -16,7 +16,7 @@ import { BillOfSale } from 'src/bill-of-sale/bill-of-sale.model';
         synchronize: true,
         // alter: true,
         autoLoadModels: true,
-        logging: (msg) => console.log(`[DB] ${msg}`),
+        // logging: (msg) => console.log(`[DB] ${msg}`),
       }),
     }),
     SequelizeModule.forFeature([User, Dealership, Vehicle, BillOfSale]),

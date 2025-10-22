@@ -2,12 +2,10 @@ import {
   IsString,
   IsNotEmpty,
   IsNumber,
-  IsEnum,
   Min,
   IsPositive,
   Length,
 } from 'class-validator';
-import { VehicleStatus } from '../vehicle.model';
 
 export class CreateVehicleDto {
   @IsString()
@@ -30,7 +28,4 @@ export class CreateVehicleDto {
   @IsNumber()
   @IsPositive()
   price: number;
-
-  @IsEnum(VehicleStatus)
-  status: VehicleStatus = VehicleStatus.AVAILABLE;
 }

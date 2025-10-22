@@ -9,13 +9,21 @@ import {
 import { Dealership } from '../dealership/dealership.model';
 import { Vehicle } from '../vehicle/vehicle.model';
 
+export enum BosStatus {
+  DRAFT = 'DRAFT',
+  SOLD = 'SOLD',
+  CANCELLED = 'CANCELLED',
+}
+
 export interface BillOfSaleFields {
-  dealershipId: string;
-  vehicleId: number;
   saleDate: Date;
   finalPrice: number;
   buyerName: string;
   buyerAddress: string;
+  bosStatus: BosStatus;
+
+  vehicleId: number;
+  dealershipId: string;
 }
 
 @Table({
@@ -76,4 +84,11 @@ export class BillOfSale extends Model<BillOfSale> {
     allowNull: false,
   })
   buyerAddress: string;
+
+  @Column({
+    type: DataType.ENUM(...Object.values(BosStatus)),
+    allowNull: false,
+    defaultValue: BosStatus.DRAFT,
+  })
+  bosStatus: BosStatus;
 }
