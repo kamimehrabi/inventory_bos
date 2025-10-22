@@ -9,13 +9,30 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { WinstonLogger } from 'src/common/logger/winston-logger/winston-logger.service';
 import { GetVehiclesDto } from './dto/get-vehicles.dto';
+import {
+  QueryConfig,
+  SequelizeQueryBuilderService,
+} from 'src/common/database/sequelize-query-builder.service';
 
 @Injectable()
 export class VehicleService {
+  private readonly vehicleQueryConfig: QueryConfig<Vehicle> = {
+    searchFields: ['vin', 'make', 'model'],
+    sortableFields: [
+      'year',
+      'make',
+      'model',
+      'price',
+      'createdAt',
+      'updatedAt',
+    ],
+  };
+
   constructor(
     @InjectModel(Vehicle)
     private readonly vehicleModel: typeof Vehicle,
     private readonly logger: WinstonLogger,
+    private readonly queryBuilder: SequelizeQueryBuilderService,
   ) {
     this.logger.setContext(VehicleService.name);
   }
@@ -50,19 +67,23 @@ export class VehicleService {
   async findAll(
     dealershipId: string,
     query: GetVehiclesDto,
-  ): Promise<Vehicle[] | null> {
-    const { includeDeleted = false } = query;
+  ): Promise<{ rows: Vehicle[]; count: number }> {
     this.logger.log(
-      `Dealership ${dealershipId}: Fetching all vehicles (includeDeleted: ${includeDeleted})`,
+      `Dealership ${dealershipId}: Fetching vehicles with query: ${JSON.stringify(query)}`,
     );
 
-    const vehicles = await this.vehicleModel.findAll({
-      where: { dealershipId },
-      paranoid: !includeDeleted,
-    });
+    const baseWhere = { dealershipId };
+
+    const options = this.queryBuilder.buildQueryOptions<Vehicle>(
+      query,
+      this.vehicleQueryConfig,
+      baseWhere,
+    );
+
+    const vehicles = await this.vehicleModel.findAndCountAll(options);
 
     this.logger.log(
-      `Dealership ${dealershipId}: Found ${vehicles.length} vehicles.`,
+      `Dealership ${dealershipId}: Found ${vehicles.count} vehicles in total, returning page ${query.page || 1}.`,
     );
     return vehicles;
   }

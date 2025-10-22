@@ -43,7 +43,7 @@ export class VehicleController {
   findAll(
     @DealershipContext() dealershipId: string,
     @Query() query: GetVehiclesDto,
-  ): Promise<Vehicle[] | null> {
+  ): Promise<{ rows: Vehicle[]; count: number }> {
     return this.vehiclesService.findAll(dealershipId, query);
   }
 
