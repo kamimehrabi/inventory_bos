@@ -18,7 +18,6 @@ export class UserService {
   async findOneByEmail(email: string): Promise<User | null> {
     return this.userModel.findOne({
       where: { email },
-      // include: [Dealership], // Include dealership data if needed
     });
   }
 
