@@ -25,12 +25,10 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/user/user.model';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 @Controller('vehicle')
-@UseInterceptors(CacheInterceptor)
 export class VehicleController {
   constructor(private readonly vehiclesService: VehicleService) {}
 
@@ -43,8 +41,6 @@ export class VehicleController {
   }
 
   @Get()
-  @CacheKey('vehicles_by_dealership')
-  @CacheTTL(5)
   async findAll(
     @DealershipContext() dealershipId: string,
     @Query() query: GetVehiclesDto,

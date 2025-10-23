@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   BadRequestException,
   ForbiddenException,
@@ -19,6 +20,11 @@ import { MinioService } from 'src/common/storage/minio/minio.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
+interface CachedVehicleList {
+  rows: Vehicle[];
+  count: number;
+}
+
 @Injectable()
 export class VehicleService {
   private readonly vehicleQueryConfig: QueryConfig<Vehicle> = {
@@ -33,7 +39,8 @@ export class VehicleService {
     ],
   };
 
-  private readonly VEHICLE_CACHE_KEY = 'vehicles_by_dealership';
+  private readonly VEHICLE_LIST_PREFIX = 'vehicle_list_';
+  private readonly CACHE_TTL = 60000;
 
   constructor(
     @InjectModel(Vehicle)
@@ -44,6 +51,56 @@ export class VehicleService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.logger.setContext(VehicleService.name);
+  }
+
+  private getCacheKey(dealershipId: string, query: GetVehiclesDto): string {
+    const queryString = JSON.stringify(query);
+    return `${this.VEHICLE_LIST_PREFIX}${dealershipId}:${queryString}`;
+  }
+
+  private async invalidateCache(dealershipId: string): Promise<void> {
+    const pattern = `${this.VEHICLE_LIST_PREFIX}${dealershipId}:*`;
+    this.logger.log(`Invalidating cache keys matching pattern: ${pattern}`);
+
+    try {
+      const keyvRedisStore = this.cacheManager.stores[1];
+
+      let client: any = (keyvRedisStore as any).opts?.store?.client;
+
+      if (!client) {
+        client = (keyvRedisStore as any).store?.client;
+      }
+
+      if (!client || typeof client.keys !== 'function') {
+        this.logger.error(
+          'Failed to access underlying Redis client or keys() method via Keyv store. Check Keyv Redis compatibility.',
+        );
+        return;
+      }
+
+      const keys: string[] = await client.keys(pattern);
+
+      if (keys && keys.length > 0) {
+        this.logger.log(`Keys found for deletion: ${keys.join(', ')}`); // LOG THE KEYS BEING DELETED
+
+        const deletePromises = keys.flatMap((key) => [
+          (this.cacheManager.stores[0] as any).delete(key),
+          (this.cacheManager.stores[1] as any).delete(key),
+        ]);
+
+        await Promise.all(deletePromises);
+
+        this.logger.log(
+          `Successfully deleted ${keys.length} cache entries for dealership ${dealershipId} from both layers.`,
+        );
+      } else {
+        this.logger.log(
+          `No cache entries found to delete for dealership ${dealershipId} with pattern ${pattern}.`,
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to invalidate cache keys:', error.stack);
+    }
   }
 
   async create(
@@ -68,9 +125,9 @@ export class VehicleService {
     const vehicle = await this.vehicleModel.create({
       ...createVehicleDto,
       dealershipId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
-    await this.invalidateCache(); // Clear cache after successful creation
+
+    await this.invalidateCache(dealershipId);
     return vehicle;
   }
 
@@ -78,12 +135,21 @@ export class VehicleService {
     dealershipId: string,
     query: GetVehiclesDto,
   ): Promise<{ rows: Vehicle[]; count: number }> {
+    const cacheKey = this.getCacheKey(dealershipId, query);
+
+    const cachedData = await this.cacheManager.get<CachedVehicleList>(cacheKey);
+    if (cachedData) {
+      this.logger.log(
+        `Dealership ${dealershipId}: Cache HIT for key ${cacheKey}.`,
+      );
+      return cachedData;
+    }
+
     this.logger.log(
-      `Dealership ${dealershipId}: Fetching vehicles with query: ${JSON.stringify(query)}`,
+      `Dealership ${dealershipId}: Cache MISS for key ${cacheKey}. Fetching from DB.`,
     );
 
     const baseWhere = { dealershipId };
-
     const options = this.queryBuilder.buildQueryOptions<Vehicle>(
       query,
       this.vehicleQueryConfig,
@@ -95,6 +161,12 @@ export class VehicleService {
     this.logger.log(
       `Dealership ${dealershipId}: Found ${vehicles.count} vehicles in total, returning page ${query.page || 1}.`,
     );
+
+    await this.cacheManager.set(cacheKey, vehicles, this.CACHE_TTL);
+    this.logger.log(
+      `Dealership ${dealershipId}: Set cache for key ${cacheKey}.`,
+    );
+
     return vehicles;
   }
 
@@ -118,7 +190,8 @@ export class VehicleService {
       ...updateVehicleDto,
       dealershipId,
     });
-    await this.invalidateCache(); // Clear cache after successful creation
+
+    await this.invalidateCache(dealershipId);
     return updatedVehicle;
   }
 
@@ -129,7 +202,8 @@ export class VehicleService {
       `Dealership ${dealershipId}: Deleting vehicle with id: ${id} (Soft Delete)`,
     );
     await vehicle.destroy();
-    await this.invalidateCache(); // Clear cache after successful creation
+
+    await this.invalidateCache(dealershipId);
 
     this.logger.log(
       `Dealership ${dealershipId}: Successfully soft-deleted vehicle with id: ${id}`,
@@ -156,7 +230,7 @@ export class VehicleService {
 
     const updatedVehicle = await vehicle.update({ imageUrl });
 
-    await this.invalidateCache(); // Clear cache after successful creation
+    await this.invalidateCache(dealershipId);
 
     this.logger.log(
       `Dealership ${dealershipId}: Image uploaded and vehicle ${vehicleId} updated.`,
@@ -187,9 +261,5 @@ export class VehicleService {
     }
 
     return vehicle;
-  }
-
-  private async invalidateCache() {
-    this.cacheManager.del(this.VEHICLE_CACHE_KEY);
   }
 }
