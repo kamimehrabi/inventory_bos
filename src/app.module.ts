@@ -8,6 +8,7 @@ import { BillOfSaleModule } from './bill-of-sale/bill-of-sale.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MinioModule } from './common/storage/minio/minio.module';
+import { MarketingSyncModule } from './marketing-sync/marketing-sync.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MinioModule } from './common/storage/minio/minio.module';
     UserModule,
     AuthModule,
     MinioModule,
+    MarketingSyncModule,
   ],
   controllers: [],
   providers: [],

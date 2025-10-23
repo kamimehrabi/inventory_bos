@@ -1,0 +1,39 @@
+{
+  "syncTriggerMessage": "Manual API Trigger by Admin",
+  "dealershipId": "STORE-A",
+  "dealershipName": "Central Inventory Motors",
+  "totalVehicles": 5,
+  "vehicles": [
+    {
+      "id": 4,
+      "year": 2023,
+      "make": "Ford",
+      "model": "F-150"
+    },
+    {
+      "id": 5,
+      "year": 2024,
+      "make": "Ford",
+      "model": "F-150"
+    },
+    {
+      "id": 6,
+      "year": 2000,
+      "make": "Benz",
+      "model": "SLS"
+    },
+    {
+      "id": 2,
+      "year": 2024,
+      "make": "Honda",
+      "model": "CRV Sport"
+    },
+    {
+      "id": 3,
+      "year": 2021,
+      "make": "Ford",
+      "model": "F-150"
+    }
+  ],
+  "syncTimestamp": "2025-10-22T13:44:49.404Z"
+}

@@ -32,12 +32,21 @@ export class Dealership extends Model<Dealership> implements DealershipFields {
   })
   address: string;
 
-  @HasMany(() => User)
+  @HasMany(() => User, {
+    foreignKey: 'dealershipId',
+    as: 'users',
+  })
   users: User[];
 
-  @HasMany(() => Vehicle)
+  @HasMany(() => Vehicle, {
+    foreignKey: 'dealershipId',
+    as: 'vehicles',
+  })
   vehicles: Vehicle[];
 
-  @HasMany(() => BillOfSale)
+  @HasMany(() => BillOfSale, {
+    foreignKey: 'dealershipId',
+    as: 'BillOfSales',
+  })
   billsOfSale: BillOfSale[];
 }
