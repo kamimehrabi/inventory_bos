@@ -56,10 +56,11 @@ services:
     container_name: inventory_bos_redis
     image: redis:latest
     restart: always
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
 
   minio:
     container_name: inventory_bos_minio
@@ -90,6 +91,5 @@ services:
 # Docker Volumes for data persistence
 volumes:
   postgres_data:
-  redis_data:
   minio_data:
   rabbitMQ_data:

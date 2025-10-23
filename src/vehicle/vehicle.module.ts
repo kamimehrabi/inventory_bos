@@ -8,6 +8,7 @@ import { LoggerModule } from 'src/common/logger/logger.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { SequelizeQueryBuilderService } from 'src/common/database/sequelize-query-builder.service';
 import { MinioModule } from 'src/common/storage/minio/minio.module';
+import { RedisModule } from 'src/common/cache/redis/redis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MinioModule } from 'src/common/storage/minio/minio.module';
     LoggerModule,
     AuthModule,
     MinioModule,
+    RedisModule,
   ],
   controllers: [VehicleController],
   providers: [VehicleService, SequelizeQueryBuilderService],

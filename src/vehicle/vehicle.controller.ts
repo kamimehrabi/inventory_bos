@@ -1,5 +1,3 @@
-// vehicle.controller.ts
-
 import {
   Controller,
   Get,
@@ -14,11 +12,11 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
-  UploadedFile, // <-- New Import for Query
+  UploadedFile,
 } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
-import { GetVehiclesDto } from './dto/get-vehicles.dto'; // <-- New DTO for query params
+import { GetVehiclesDto } from './dto/get-vehicles.dto';
 import { Vehicle } from './vehicle.model';
 import { VehicleService } from './vehicle.service';
 import { DealershipContext } from 'src/auth/decorators/dealership-context.decorator';
@@ -27,15 +25,17 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/user/user.model';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 @Controller('vehicle')
+@UseInterceptors(CacheInterceptor)
 export class VehicleController {
   constructor(private readonly vehiclesService: VehicleService) {}
 
   @Post()
-  create(
+  async create(
     @DealershipContext() dealershipId: string,
     @Body() createVehicleDto: CreateVehicleDto,
   ): Promise<Vehicle> {
@@ -43,7 +43,9 @@ export class VehicleController {
   }
 
   @Get()
-  findAll(
+  @CacheKey('vehicles_by_dealership')
+  @CacheTTL(5)
+  async findAll(
     @DealershipContext() dealershipId: string,
     @Query() query: GetVehiclesDto,
   ): Promise<{ rows: Vehicle[]; count: number }> {
@@ -51,7 +53,7 @@ export class VehicleController {
   }
 
   @Get(':id')
-  findOne(
+  async findOne(
     @Param('id', ParseIntPipe) id: number,
     @DealershipContext() dealershipId: string,
     @Query('includeDeleted') includeDeletedQuery?: string,
@@ -61,7 +63,7 @@ export class VehicleController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateVehicleDto: UpdateVehicleDto,
     @DealershipContext() dealershipId: string,
@@ -71,7 +73,7 @@ export class VehicleController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(
+  async remove(
     @Param('id', ParseIntPipe) id: number,
     @DealershipContext() dealershipId: string,
   ): Promise<void> {

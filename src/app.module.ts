@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MinioModule } from './common/storage/minio/minio.module';
 import { MarketingSyncModule } from './marketing-sync/marketing-sync.module';
+import { RedisModule } from './common/cache/redis/redis.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MarketingSyncModule } from './marketing-sync/marketing-sync.module';
     AuthModule,
     MinioModule,
     MarketingSyncModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],

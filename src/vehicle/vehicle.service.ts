@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,8 @@ import {
   SequelizeQueryBuilderService,
 } from 'src/common/database/sequelize-query-builder.service';
 import { MinioService } from 'src/common/storage/minio/minio.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class VehicleService {
@@ -30,12 +33,15 @@ export class VehicleService {
     ],
   };
 
+  private readonly VEHICLE_CACHE_KEY = 'vehicles_by_dealership';
+
   constructor(
     @InjectModel(Vehicle)
     private readonly vehicleModel: typeof Vehicle,
     private readonly logger: WinstonLogger,
     private readonly queryBuilder: SequelizeQueryBuilderService,
     private readonly minioService: MinioService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.logger.setContext(VehicleService.name);
   }
@@ -64,6 +70,7 @@ export class VehicleService {
       dealershipId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
+    await this.invalidateCache(); // Clear cache after successful creation
     return vehicle;
   }
 
@@ -111,6 +118,7 @@ export class VehicleService {
       ...updateVehicleDto,
       dealershipId,
     });
+    await this.invalidateCache(); // Clear cache after successful creation
     return updatedVehicle;
   }
 
@@ -121,6 +129,7 @@ export class VehicleService {
       `Dealership ${dealershipId}: Deleting vehicle with id: ${id} (Soft Delete)`,
     );
     await vehicle.destroy();
+    await this.invalidateCache(); // Clear cache after successful creation
 
     this.logger.log(
       `Dealership ${dealershipId}: Successfully soft-deleted vehicle with id: ${id}`,
@@ -146,6 +155,8 @@ export class VehicleService {
     const imageUrl = await this.minioService.upload(file, folder);
 
     const updatedVehicle = await vehicle.update({ imageUrl });
+
+    await this.invalidateCache(); // Clear cache after successful creation
 
     this.logger.log(
       `Dealership ${dealershipId}: Image uploaded and vehicle ${vehicleId} updated.`,
@@ -176,5 +187,9 @@ export class VehicleService {
     }
 
     return vehicle;
+  }
+
+  private async invalidateCache() {
+    this.cacheManager.del(this.VEHICLE_CACHE_KEY);
   }
 }
